@@ -1,0 +1,53 @@
+---
+title: "Final_Project_GRShipping"
+author: "Alex Billinis"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## 
+
+First of all, let's bring in the data, and, crucially, lets also separate dates by day, month, year.
+
+```{r}
+library(tidyverse)
+Grships <- read.csv("Greek_Ships_Sunk_MasterfileEXCEL.csv", header = TRUE)
+#We need to split dates to day-month-year
+Tidy_Ships <- separate(Grships, col = ...5, into = c("Day", "Month", "Year"), 
+         sep = "-")
+
+```
+
+Now, let's check data based on two dates. First, 28 October 1940, the day that Greece was attacked by Italy and entered World War Two, and, second, 6 April 1941, the day that Germany attacked Greece. The question is, how many Greek ships were sunk when (1) Greece was not involved in the war at all, and (2) prior to actual war with Germany?
+
+```{r}
+Pre_Oct <- Greek_Ships_Sunk_MasterfileEXCEL %>% filter(...5 <= "28-Oct-40") 
+Pre_April <- Greek_Ships_Sunk_MasterfileEXCEL %>% filter(...5 <= "6-Apr-41")
+Total <- Greek_Ships_Sunk_MasterfileEXCEL
+
+```
+
+```{r}
+library(ggplot2)
+Ships_by_year <- Tidy_Ships %>% group_by(Year) %>% summarize(count = n()) 
+ggplot(Ships_by_year, aes(x = Year, y = count)) + geom_col()
+```
+
+It is worth contrasting the Greek Ships' losses while neutral with the American. From September 3 1939 to December 6, 1941, there are only
+
+```{r}
+Amships <- read.csv("USShips_Pre12_7.csv")
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+library(leaflet)
+Tidy_Ships_Update <-Tidy_Ships %>% mutate(`Greek_Ships_Sunk (1)`== "Longitude")
+my.map <- leaflet() 
+leaflet(data=Tidy_Ships) %>% addTiles() %>% addMarkers(~longitude, ~latitude)
+```
