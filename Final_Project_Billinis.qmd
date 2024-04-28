@@ -17,6 +17,8 @@ First of all, let's bring in the data, and, crucially, lets also separate dates 
 library(ggplot2)
 library(maps)
 library(tidyverse)
+library(lubridate)
+library(dplyr)
 library(sf)
 install.packages("rnaturalearthdata")
 library(rnaturalearth)
@@ -57,14 +59,15 @@ Pre_Oct <- Tidy_Ships %>% filter(Date < "30-Oct-40") %>% filter(Year <= 40)
 ```
 
 ```{r}
-Pre_April <- re_April <- Grships %>% filter(Date <= "6-Apr-41") %>% filter(!Date = 42)
+Pre_April <- Tidy_Ships %>% filter(Year != 44) %>% filter(Year !=43) %>%  filter(Year != 42) %>% filter(Year <= 41) %>% filter(Date < "5-Apr-41")
 
 ```
 
 ```{r}
 library(ggplot2)
 Grcategory <- Pre_Oct %>% group_by(Event) %>% summarize(count = n())
-ggplot(Grcategory, aes(x = Event, y = count)) + geom_col()
+ggplot(Grcategory, aes(x = Event, y = count)) + geom_col() 
+
 
 ```
 ```{r}
@@ -86,20 +89,10 @@ The `echo: false` option disables the printing of code (only output is displayed
 ```
 
 ```{r}
-#install.packages("ggmap")
-library(dplyr)
-library(tidyverse)
-library(lubridate)
-library(ggplot2)
-library(basemaps)
 
 AerialAtl <- Grships %>% 
   filter(Event == "Aerial Bombing" & Location == "Atlantic")
 head(AerialAtl)
-```
-
-```{r}
-mapinfo <- map_data(world)
 ```
 
 ```{r}
@@ -115,13 +108,6 @@ library(rnaturalearth)
 
 ```
 
-
-```{r}
-```
-
-```{r}
-mapdata <- left_join(rnaturalearth, AerialAtl, by="region")
-```
 
 ```{r}
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -155,10 +141,21 @@ ggplot(AerialAtl,aes(x = Longitud, y = Latitude)) +
 AerialMed <- Grships %>% 
   filter(Event == "Aerial Bombing" & Location == "Mediterranean")
 ```
-
+#
 ```{r}
 ggplot(data = world) +
     geom_sf() +
     xlab("Longitude") + ylab("Latitude") +
     ggtitle("World map", subtitle = paste0("(", length(unique(world$NAME)), " countries)"))
 ```
+
+```{r}
+GrShipEvent <- Tidy_Ships %>% group_by(Event) %>% summarize(count = n())
+ggplot(GrShipEvent, aes(x = Event, y = count)) + geom_col()
+```
+
+```{r}
+GrShipYear <- Tidy_Ships %>% group_by(Year) %>% summarize(count = n())
+ggplot(GrShipYear, aes(x = Year, y = count)) + geom_col()
+```
+
