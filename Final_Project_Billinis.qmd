@@ -31,7 +31,7 @@ Grships <- read.csv("Greek_Ships_Sunk_MasterfileEXCEL.csv", header = TRUE)
 
 
 ```{r}
-Tidy_Ships <- separate(Grships, col = Date, into = c("Day", "Month", "Year"), sep = "-", remove = FALSE)
+Tidy_Ships <- separate(Grships, col = Date, into = c("Day", "Month", "Year"), sep = "/", remove = FALSE)
 #Tidy_Ships <- Tidy_Ships %>% mutate(Month = recode(Month,
            #             Jan = 1,
             #            Feb = 2,
@@ -48,31 +48,32 @@ Tidy_Ships <- separate(Grships, col = Date, into = c("Day", "Month", "Year"), se
 
 ```
 
-Now, let's check data based on Greece's entry into World War Two. First, 28 October 1940, the day that Greece was attacked by Italy and entered World War Two, and, second, 6 April 1941, the day that Germany attacked Greece. The question is, how many Greek ships were sunk when Greece was not involved in the war at all?
 
 ```{r}
-Tidy_Ships %>% filter(Year <= 40) %>% filter(Month <= 10) %>% filter(Day <= 28)
+
 ```
 
 ```{r}
-Pre_Oct <- Tidy_Ships %>% filter(Date < "30-Oct-40") %>% filter(Year <= 40)
+Pre_Oct <- Tidy_Ships %>% filter(Date < "1940-10-28")
+
 ```
 
 ```{r}
-Pre_April <- Tidy_Ships %>% filter(Year != 44) %>% filter(Year !=43) %>%  filter(Year != 42) %>% filter(Year <= 41) %>% filter(Date < "5-Apr-41")
+Pre_April <- Tidy_Ships %>% filter(Date < "1941-04-06")
 
 ```
 
 ```{r}
 library(ggplot2)
 Grcategory <- Pre_Oct %>% group_by(Event) %>% summarize(count = n())
-ggplot(Grcategory, aes(x = Event, y = count)) + geom_col() 
+ggplot(Grcategory, aes(x = Event, y = count)) + geom_col() + ggtitle("Ships Sunk Pre Oct 28, 1940")
 
 
 ```
 ```{r}
+library(ggplot2)
 Grcategory <- Pre_April %>% group_by(Event) %>% summarize(count = n())
-ggplot(Grcategory, aes(x = Event, y = count)) + geom_col()
+ggplot(Grcategory, aes(x = Event, y = count)) + geom_col() + ggtitle("Ships Sunk Pre April 6, 1941")
 ```
 
 It is worth contrasting the Greek Ships' losses while neutral with the American. From September 3 1939 to December 6, 1941, there are only
@@ -80,7 +81,8 @@ It is worth contrasting the Greek Ships' losses while neutral with the American.
 ```{r}
 Amships <- read.csv("USShips_Pre12_7.csv")
 Amcategory <- Amships %>% group_by(Flag) %>% summarize(count = n()) 
-ggplot(Amcategory, aes(x = Flag, y = count)) + geom_col()
+ggplot(Amcategory, aes(x = Flag, y = count)) + geom_col() + ggtitle("US Controlled Ships Sunk, Pre December 7, 1941")
+
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
@@ -114,48 +116,29 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 Europe <- world[which(world$continent == "Europe"),]
 map <- ggplot(Europe) +
   geom_sf() +
-  coord_sf(xlim = c(-25,50), ylim = c(35,70), expand = FALSE)
-map + geom_point(data=AerialAtl, mapping=aes(x=Long, y=Lat, group=NULL), color='blue')
+  coord_sf(xlim = c(-25,35), ylim = c(40,60), expand = FALSE)
+map + geom_point(data=AerialAtl, mapping=aes(x=Long, y=Lat, group=NULL), color='red') + ggtitle("Aerial Bombardment: Atlantic")
 ```
 
-```{r}
-Atlmap <- map_data("ocean", ocean = "Atlantic")
-```
 
 ```{r}
 world <- ne_countries(scale = "medium", returnclass = "sf")
-EuropeGR <- world[which(world$continent == "Europe")] %>% filter(country == "Greece")
+Europe <- world[which(world$continent == "Europe"),]
 map <- ggplot(Europe) +
   geom_sf() +
-  coord_sf(xlim = c(-25,50), ylim = c(35,70), expand = FALSE)
-map + geom_point(data=AerialMed, mapping=aes(x=Long, y=Lat, group=NULL), color='blue')
+  coord_sf(xlim = c(0,40), ylim = c(28,48), expand = FALSE)
+map + geom_point(data=AerialMed, mapping=aes(x=Long, y=Lat, group=NULL), color='blue') + ggtitle("Aerial Bombardment: Mediterranean")
 ```
 
-```{r}
-ggplot(AerialAtl,aes(x = Longitud, y = Latitude)) + 
-  geom_map(data = Atlantic, map = Atlantic, aes(long, lat, map_id=region)) +
-  geom_point(data = AerialAtl, mapping = aes(x=lon, y=lat))
-```
 
-```{r}
-AerialMed <- Grships %>% 
-  filter(Event == "Aerial Bombing" & Location == "Mediterranean")
-```
-#
-```{r}
-ggplot(data = world) +
-    geom_sf() +
-    xlab("Longitude") + ylab("Latitude") +
-    ggtitle("World map", subtitle = paste0("(", length(unique(world$NAME)), " countries)"))
-```
 
 ```{r}
 GrShipEvent <- Tidy_Ships %>% group_by(Event) %>% summarize(count = n())
-ggplot(GrShipEvent, aes(x = Event, y = count)) + geom_col()
+ggplot(GrShipEvent, aes(x = Event, y = count)) + geom_col() + ggtitle("How the Greek Ships were Sunk")
 ```
 
 ```{r}
-GrShipYear <- Tidy_Ships %>% group_by(Year) %>% summarize(count = n())
-ggplot(GrShipYear, aes(x = Year, y = count)) + geom_col()
+GrShipYear <- Grships %>% group_by(Year) %>% summarize(count = n()) 
+ggplot(GrShipYear, aes(x = Year, y = count)) + geom_col() + ggtitle("When the Greek Ships were Sunk")
 ```
 
