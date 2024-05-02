@@ -18,7 +18,6 @@ library(tidyverse)
 library(lubridate)
 library(dplyr)
 library(sf)
-install.packages("rnaturalearthdata")
 library(rnaturalearth)
 ```
 
