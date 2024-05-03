@@ -1,0 +1,132 @@
+---
+title: "Final_Project_GRShipping"
+author: "Alex Billinis"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## 
+
+```{r}
+library(ggplot2)
+library(maps)
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(sf)
+library(rnaturalearth)
+```
+
+```{r}
+Grships <- read.csv("Greek_Ships_Sunk_MasterfileEXCEL.csv", header = TRUE)
+```
+
+```{r}
+Tidy_Ships <- separate(Grships, col = Date, into = c("Day", "Month", "Year"), sep = "/", remove = FALSE)
+
+```
+
+```{r}
+Pre_Oct <- Tidy_Ships %>% filter(Date < "1940-10-28")
+
+```
+
+```{r}
+Pre_April <- Tidy_Ships %>% filter(Date < "1941-04-06")
+
+```
+
+For the final project I chose to analyze a dataset I created on the Greek merchant ships lost in World War Two. It is a very personal project for me, as I come from a line of merchant mariners, and I hail from a Greek island with a venerable nautical history, and the world’s oldest merchant marine academy, which last year made me an honorary alumnus. Further, and most importantly, my grandfather, Alexandros Billinis, was one of thousands of Greeks who perished in the deadly battle on the waves. I am interested in finding out how the data stacks against the historiography and the narratives I remember hearing from my family.
+
+In 1939, the Greek Merchant marine was the world’s ninth largest, and most large Greek operators were headquartered in London, even if their ships were registered almost exclusively under the Greek flag and their officers and sailors were Greek nationals. As three of the other nine largest merchant fleets were Axis powers (Japan, Germany, and Italy), the Greek fleet represented a key carrying power, and one where the British could and did apply considerable pressure to comply with British war objectives though Greece was neutral until attacked. [^1]
+I am aware of the general story of the Battle of the Atlantic, where the German submarines almost succeeded in cutting the British island off from its supplies, and how the tide was turned with countermeasures, convoys, increased air cover, and the assembly line manufacture of Liberty Ships. I created a dataset of Greek ships lost to enemy action during World War Two, compiled from two sources, (1) "The World’s Merchant Fleets: 1939," by Roger Jordan,” [^2] and (2) Uboat.net, a site which lists out all losses from the Battle of the Atlantic.[^3] I contrasted Greek data while neutral with analogous US data from usmm.org. [^4] Plenty of history has been written on the Battle of the Atlantic and the sea war in World War Two, yet using digital tools, the datasets show many interesting subtleties not necessarily evident in the narrative. Here, I will focus on the question of neutrality and ship losses, comparing the US to Greece, and also do a bit of a deeper dive into the ways that Greek ships were sunk; it was not all about the UBoats.
+
+
+Neutrality and Shipping World War Two began on September 3, 1939, yet aside from the rapid and barbaric conquest of Poland, the war on land would be a “phony” one until the Spring of 1940. At sea, however, the war began the first day and both Allied and neutral shipping paid the price from the outset, yet some neutrals were “more equal than others.” Greek shipping was devastated well before Greece joined the Allies after Italy attacked the country.
+
+What the Numbers Say: Neutral Greece vs. Neutral US
+
+1.  Greek Ships Sunk Prior to Italian Invasion of Greece: October 28, 1940
+
+```{r}
+library(ggplot2)
+Grcategory <- Pre_Oct %>% group_by(Event) %>% summarize(count = n())
+ggplot(Grcategory, aes(x = Event, y = count)) + geom_col() + ggtitle("Ships Sunk Pre Oct 28, 1940")
+ggsave("Oct.png")
+
+```
+
+2.  Greek Ships Sunk Prior to German Invasion of Greece: April 6, 1941
+
+```{r}
+library(ggplot2)
+Grcategory <- Pre_April %>% group_by(Event) %>% summarize(count = n())
+ggplot(Grcategory, aes(x = Event, y = count)) + geom_col() + ggtitle("Ships Sunk Pre April 6, 1941")
+ggsave("Apr.png")
+```
+
+3.  American Ships Sunk prior to Pearl Harbor (December 7, 1941)
+
+```{r}
+Amships <- read.csv("USShips_Pre12_7.csv")
+Amcategory <- Amships %>% group_by(Flag) %>% summarize(count = n()) 
+ggplot(Amcategory, aes(x = Flag, y = count)) + geom_col() + ggtitle("US Controlled Ships Sunk, Pre December 7, 1941")
+ggsave("USships.png")
+```
+
+The difference between Greek losses and US is instructive. Greece lost ships in the period September 1939 to October 1940. In a longer period of neutrality, the US lost just 16 ships, and, tellingly, only seven of those American ships were US flagged, seven were Panamanian, and two were under the Philippine colonial flag. According to the Greek language book by Christos Dounis, "En Kairo Polemou" (In Time of War), Greek ships scrupulously followed protocols for neutrals, \[\^5\] and while Greece was heroic in defending itself successfully against the Italian invaders, the country did its best not to provoke Germany and endured the loss of its ships and mariners. Yet this is not the full story, as Greek ships were basically seconded to the British war effort, as most Greek shipping was run out of London, and Greek shipping was an appendage of the British economy. \[\^6\] In spite of their neutral status, Greek ships were carrying supplies to Britain and the Germans therefore actively targeted them. In contrast, the US-flagged vessels were barred from carrying war materials to British or French ports under the Neutrality Acts of 1939, so non-US flagged ships had to do the carrying—and the dying.\[\^7\] This is precisely why the Panamanian flag was used, and tellingly, seven of the “US” losses were under the Panamanian flag. Adherence to the Neutrality Act helps to explain the huge difference in Greek versus American losses while both countries were still neutral. Like so many small countries, Greece had to pick its battles and fought heroically when attacked. Interestingly, one of the most comprehensive books about Greece in World War Two in the English language, “The First Victory,” makes no mention of the shipping losses during neutrality,\[\^8\] focusing instead of the land victory over Italy and the heroic fight against Germany and the resistance. Harlaftis, perhaps the foremost Greek nautical historian, provides a basic explanation of how Greek shipping could not remain neutral in spite of the Greek government’s dogged attempts to remain out of the carnage.
+
+```{r}
+
+AerialAtl <- Grships %>% 
+  filter(Event == "Aerial Bombing" & Location == "Atlantic")
+head(AerialAtl)
+```
+
+How were the Ships Sunk?
+
+This topic is also interesting. We think of the war against merchant ships as being waged primarily by the submarine, and certainly this was the primary killer of merchant ships. However, I found that a good portion of the Greek losses were due to aerial attacks rather than from submerged attacks. I thought it made sense to look at those numbers and plot them on a map. The numbers and maps will show a narrative that might not be emphasized in the written record.
+
+What we find is that a large portion of the Greek losses came from aerial bombardment; twenty seven percent of the sinkings were from aerial bombardment, and these were clustered around two main areas: Northwestern Atlantic and the Mediterranean, particularly the Aegean Sea. While we know that close air support was a key part of the German blitzkrieg strategy, it is also noteworthy that the losses are very close to shore, indicating both a range issue and that the ship attacks were complimentary to the ground offensives against Western Europe/Britain in 1940-1941, and during the German invasion of Greece and Yugoslavia in April and May of 1941. These numbers indicate the active and intimate involvement of Greek shipping in combat theatres, particularly in the Mediterranean once Germany invaded Greece.
+
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+Europe <- world[which(world$continent == "Europe"),]
+map <- ggplot(Europe) +
+  geom_sf() +
+  coord_sf(xlim = c(-25,35), ylim = c(40,60), expand = FALSE)
+map + geom_point(data=AerialAtl, mapping=aes(x=Long, y=Lat, group=NULL), color='red') + ggtitle("Aerial Bombardment: Atlantic")
+ggsave("AerialAtl.png")
+```
+
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+Europe <- world[which(world$continent == "Europe"),]
+map <- ggplot(Europe) +
+  geom_sf() +
+  coord_sf(xlim = c(0,40), ylim = c(28,48), expand = FALSE)
+map + geom_point(data=AerialMed, mapping=aes(x=Long, y=Lat, group=NULL), color='blue') + ggtitle("Aerial Bombardment: Mediterranean")
+ggsave("AerialMed.png")
+```
+
+```{r}
+GrShipEvent <- Tidy_Ships %>% group_by(Event) %>% summarize(count = n())
+ggplot(GrShipEvent, aes(x = Event, y = count)) + geom_col() + ggtitle("How the Greek Ships were Sunk")
+ggsave("Howships.png")
+```
+
+```{r}
+GrShipYear <- Grships %>% group_by(Year) %>% summarize(count = n()) 
+ggplot(GrShipYear, aes(x = Year, y = count)) + geom_col() + ggtitle("When the Greek Ships were Sunk")
+ggsave("Whenships.png")
+```
+
+Conclusion
+
+In the case of World War Two at sea, I found my dataset illustrates in hard cold numbers the various ways ships and crew were lost, and US casualty data show that being a merchant mariner was in fact the most dangerous place to be in World War Two aside from the US Marines. [^10] For the Greek merchant marine story, the data herein provide a window to when and how the ships were destroyed, where they were destroyed, and what these events tell you about the time of the war, and how the mariners waged it. For example, the final chart, losses by year, show you clearly how the war was going for the Greek merchant mariners specifically, but it also provides a window generally as to the course of the Second World War. For the Greeks, German airpower was almost as deadly to the shipping as Uboat torpedoes, something that the data shows more powerfully than the narrative. Finally, while it was clear that Germany swept aside concerns about Greek neutrality far more readily than for American neutrality, Greek ships were active participants in the supply lines for the Allies prior to joining them—and paid for it dearly. It is a curious omission in Greek historiography that merits attention.
+
+\[1\]: Gelina Harlaftis, "A History of Greek-Owned Shipping," (London: Routledge, 1996), 226. \[2\]: Roger W. Jordan, "The World's Merchant Fleets: 1939" (Annapolis: Naval Institute Press, 2000), appendix. \[3\]: Gudmundur Helgason, "U-Boat.net," 1998-2024 www.uboat.net \[4\]: "American Merchant Marine at War," last updated March 15, 2023, www.usmm.org \[5\]: Christos Dounis, "En Kairo Polemou (In Time of War)" \[6\]: "The Decimation of the Fleet (1939-1945)," Argo Publishing and Advertising, Ltd, www.greekshippingmiracle.org. \[7\]: Richard L. Clarke, "Flags of Convenience," Defense Transportation Journal, Vol. 45, No. 5, (October 1989), 68. \[8\]: George Blytas, "The First Victory: Greece in the Second World War" (River Vale: Cosmos Publishing, 2009). \[9\]: William Geroux, "The Matthews Men: Seven Brothers and the War against Hitler's U-Boats" (New York: Penguin Books, 2016), 269.
